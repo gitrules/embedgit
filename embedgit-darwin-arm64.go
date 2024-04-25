@@ -8,5 +8,5 @@ import (
 
 var (
 	//go:embed dist/bingit-2.44.0-darwin-arm64
-	GitBinary []byte
+	gitBinaryData []byte
 )

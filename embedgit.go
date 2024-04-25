@@ -1,8 +1,15 @@
 package embedgit
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"os"
+	"os/exec"
+)
+
+var (
+	GitBinaryName string
 )
 
 // place the git binary in a temporary location
@@ -11,8 +18,8 @@ func init() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "creating git binary (%v)\n", err)
 	}
-	name := f.Name()
-	_, err = f.Write(GitBinary)
+	GitBinaryName = f.Name()
+	_, err = f.Write(gitBinaryData)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "writing git binary (%v)\n", err)
 	}
@@ -20,8 +27,22 @@ func init() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "closing git binary (%v)\n", err)
 	}
-	err = os.Chmod(name, 0755)
+	err = os.Chmod(GitBinaryName, 0755)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "chmod git binary (%v)\n", err)
 	}
+}
+
+func RunGit(
+	ctx context.Context,
+	args ...string,
+) (stdout string, stderr string, err error) {
+
+	cmd := exec.Command(GitBinaryName, args...)
+	var stdoutBuf bytes.Buffer
+	var stderrBuf bytes.Buffer
+	cmd.Stdout = &stdoutBuf
+	cmd.Stderr = &stderrBuf
+	err = cmd.Run()
+	return stdoutBuf.String(), stderrBuf.String(), err
 }
